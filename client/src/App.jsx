@@ -118,10 +118,9 @@ export default function App() {
         <div className="brand">
           <div className="logo">🔭</div>
           <div>
-            <h1>OTel Text Analyzer</h1>
+            <h1>Distributed Text Processing With Open Telemetry</h1>
             <p>
-              Enter up to <b>{MAX_CHARS.toLocaleString()}</b> characters. On submit, the client makes{" "}
-              <b>two concurrent</b> calls: <code>/length</code> and <code>/num_vowels</code>.
+              Enter up to <b>{MAX_CHARS.toLocaleString()}</b> characters.
             </p>
           </div>
         </div>

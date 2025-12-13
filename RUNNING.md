@@ -44,7 +44,7 @@ docker compose down -v --rmi all --remove-orphans
 Runs the client and server as **two local processes** (via a single command):
 
 ```bash
-npm run dev
+npm install && npm run dev
 ```
 
 Access:

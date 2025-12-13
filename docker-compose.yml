@@ -1,0 +1,207 @@
+version: "3.9"
+
+services:
+  edge:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - server
+      - otel-collector
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"    # rotate after ~10 MB
+        max-file: "3"      # keep 3 files total
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    depends_on:
+      - edge
+    ports:
+      - "5173:80"
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+
+  server:
+    build:
+      context: ./server
+    expose:
+      - "3000"
+    environment:
+      PORT: "3000"
+      TRUST_PROXY: "1"
+      CHUNK_SIZE: "262144"
+      WORKER_THREADS: "0"
+      RATE_LIMIT_POINTS: "20"
+      RATE_LIMIT_DURATION: "1"
+      CACHE_MAX_TEXT_CHARS: "100000"
+      CACHE_TTL_MS: "60000"
+      OTEL_SERVICE_NAME: "text-api"
+      OTEL_TRACES_EXPORTER: "otlp,console"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_LOGS_EXPORTER: "none"
+      OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: "http/protobuf"
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://otel-collector:4318/v1/traces"
+      OTEL_PROPAGATORS: "tracecontext,baggage"
+      OTEL_RESOURCE_ATTRIBUTES: "deployment.environment=local,service.namespace=otel-exercise"
+    depends_on:
+      - otel-collector
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"   # server might be chattier
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: "512M"
+        reservations:
+          cpus: "0.50"
+          memory: "512M"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.141.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector/config.yaml:/etc/otelcol/config.yaml:ro
+    expose:
+      - "4317"
+      - "4318"
+    depends_on:
+      - redpanda-0
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+
+  redpanda-0:
+    image: redpandadata/redpanda:v25.3.2
+    container_name: redpanda-0
+    command:
+      - redpanda
+      - start
+      - --kafka-addr
+      - internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr
+      - internal://redpanda-0:9092,external://localhost:19092
+      - --pandaproxy-addr
+      - internal://0.0.0.0:8082,external://0.0.0.0:18082
+      - --advertise-pandaproxy-addr
+      - internal://redpanda-0:8082,external://localhost:18082
+      - --schema-registry-addr
+      - internal://0.0.0.0:8081,external://0.0.0.0:18081
+      - --rpc-addr
+      - redpanda-0:33145
+      - --advertise-rpc-addr
+      - redpanda-0:33145
+      - --mode
+      - dev-container
+      - --smp
+      - "1"
+      - --default-log-level=info
+    volumes:
+      - redpanda-0:/var/lib/redpanda/data
+    ports:
+      - "19092:19092"
+      - "19644:9644"
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"   # broker tends to log more
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+        reservations:
+          cpus: "1.0"
+          memory: "1G"
+
+  redpanda-console:
+    image: redpandadata/console:v3.3.2
+    container_name: redpanda-console
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda-0:9092"]
+        schemaRegistry:
+          enabled: true
+          urls: ["http://redpanda-0:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda-0:9644"]
+    ports:
+      - "8081:8080"
+    depends_on:
+      - redpanda-0
+    networks:
+      - app-net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  redpanda-0:

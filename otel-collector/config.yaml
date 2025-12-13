@@ -1,0 +1,47 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          # Because the browser is same-origin via Nginx (/otlp/*), this is mostly for non-docker dev.
+          allowed_origins: ["http://localhost:8080", "http://localhost:5173"]
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+
+exporters:
+  # Console output for debugging this exercise
+  debug:
+    verbosity: basic
+
+  kafka/proto:
+    brokers: ["redpanda-0:9092"]
+    protocol_version: 2.0.0
+    partition_traces_by_id: true
+    traces:
+      topic: otel-traces
+      encoding: otlp_proto
+
+  kafka/json:
+    brokers: ["redpanda-0:9092"]
+    protocol_version: 2.0.0
+    partition_traces_by_id: true
+    traces:
+      topic: otel-traces-json
+      encoding: otlp_json
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug, kafka/proto, kafka/json]

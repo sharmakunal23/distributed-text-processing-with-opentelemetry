@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "lru-cache": "^11.0.2",
+    "piscina": "^4.7.0",
+    "rate-limiter-flexible": "^9.0.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/sdk-node": "^0.55.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.55.0",
+    "@opentelemetry/resources": "^1.29.0",
+    "@opentelemetry/semantic-conventions": "^1.29.0",
+    "pino": "^10.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^9.10.0",
+    "nodemon": "^3.1.7"
+  }
+}

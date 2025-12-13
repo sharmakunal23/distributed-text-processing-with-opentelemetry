@@ -1,0 +1,17 @@
+{
+  "name": "otel-fullstack-exercise",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client,server -c auto \"npm --workspace client run dev\" \"npm --workspace server run dev\"",
+    "docker:up": "docker compose up --build --scale server=3",
+    "docker:down": "docker compose down -v",
+    "lint": "npm --workspace server run lint && npm --workspace client run lint"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

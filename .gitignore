@@ -1,0 +1,80 @@
+node_modules
+dist
+.DS_Store
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Root-level: ignore dependencies anywhere
+node_modules/
+**/node_modules/
+
+# Server builds (adjust if you use dist, build, etc.)
+server/dist/
+server/build/
+server/.next/
+server/.nuxt/
+
+# Client builds (CRA / Vite / Next / etc.)
+client/build/
+client/dist/
+client/.next/
+client/.nuxt/
+
+# General build artifacts
+dist/
+build/
+.tmp/
+temp/
+.cache/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage / test output
+coverage/
+**/coverage/
+.nyc_output/
+jest-report/
+
+# Environment files
+.env
+.env.*
+*.local
+
+# Local configuration or secrets
+config/*.local.*
+*.secret.*
+*.key
+*.pem
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IntelliJ / JetBrains
+.idea/
+*.iml
+out/
+
+# VS Code (if used)
+.vscode/
+.history/

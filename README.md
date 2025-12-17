@@ -82,7 +82,7 @@ Open Redpanda Console at http://localhost:8081 and look for topic:
 
 ### Backend (server)
 Environment variables (see `docker-compose.yml`):
-- `CHUNK_SIZE` (default: 262144)
+- `CHUNK_SIZE` (default: 65536)
 - `WORKER_THREADS` (default: CPU count)
 - `RATE_LIMIT_POINTS` (default: 20)
 - `RATE_LIMIT_DURATION` (default: 1)

@@ -1,6 +1,4 @@
-# RUNNING.md
-
-This repo is a full-stack JavaScript (browser + Node.js) demo that:
+### This repo is a full-stack JavaScript (browser + Node.js) demo that:
 - Takes a large text input (up to 1,048,576 characters)
 - Makes **two concurrent** API calls: `/length` and `/num_vowels`
 - Correlates client/server traces via W3C `traceparent`

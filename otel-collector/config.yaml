@@ -14,6 +14,11 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
+  filter/drop_middleware:
+    error_mode: ignore
+    traces:
+      span:
+        - 'IsMatch(span.name, "^middleware - ")'
   batch:
     timeout: 1s
     send_batch_size: 1024
@@ -22,14 +27,6 @@ exporters:
   # Console output for debugging this exercise
   debug:
     verbosity: basic
-
-  kafka/proto:
-    brokers: ["redpanda-0:9092"]
-    protocol_version: 2.0.0
-    partition_traces_by_id: true
-    traces:
-      topic: otel-traces
-      encoding: otlp_proto
 
   kafka/json:
     brokers: ["redpanda-0:9092"]
@@ -43,5 +40,5 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
-      exporters: [debug, kafka/proto, kafka/json]
+      processors: [memory_limiter, filter/drop_middleware, batch]
+      exporters: [debug, kafka/json]

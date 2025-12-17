@@ -27,8 +27,40 @@ const sdk = new NodeSDK({
   }),
   instrumentations: [
     getNodeAutoInstrumentations({
-      // Keep it lean; you can enable/disable instrumentations here.
       "@opentelemetry/instrumentation-fs": { enabled: false },
+
+      // keep only the span we care about
+      "@opentelemetry/instrumentation-express": {
+        ignoreLayersType: ["middleware", "router"],
+
+        // rename spans to "POST /num_vowels" instead of "request handler - /num_vowels"
+        spanNameHook: (info, defaultName) => {
+          if (info.layerType === "request_handler") {
+            const method = info.request?.method;
+            const route = info.request?.route?.path ?? info.request?.path;
+            if (method && route) return `${method} ${route}`;
+          }
+          return defaultName;
+        },
+
+        // add the request payload preview..
+        requestHook: (span, info) => {
+          if (info.layerType !== "request_handler") return;
+
+          const body = info.request?.body;
+          const text =
+              typeof body === "string"
+                  ? body
+                  : typeof body?.text === "string"
+                      ? body.text
+                      : undefined;
+
+          if (text) {
+            span.setAttribute("app.text.length", text.length);
+            span.setAttribute("app.text.preview", text.slice(0, 128));
+          }
+        },
+      },
     }),
   ],
 });

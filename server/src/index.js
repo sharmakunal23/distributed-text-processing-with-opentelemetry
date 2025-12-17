@@ -14,7 +14,7 @@ const { cache, cacheKey } = require("./cache");
 
 const PORT = Number(process.env.PORT || 3000);
 const TRUST_PROXY = process.env.TRUST_PROXY === "1";
-const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 262144); // 256 KiB
+const CHUNK_SIZE = Number(process.env.CHUNK_SIZE || 65536); // 64 KiB
 const MAX_TEXT_CHARS = 1024 * 1024; // 1,048,576
 
 const tracer = trace.getTracer("text-api");
